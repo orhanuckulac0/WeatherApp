@@ -9,7 +9,6 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -17,6 +16,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
 
@@ -96,6 +96,15 @@ class MainActivity : AppCompatActivity() {
 
             Log.i("Current latitude:", "$latitude")
             Log.i("Current longitude:", "$longitude")
+            getLocationWeatherDetails()
+        }
+    }
+
+    private fun getLocationWeatherDetails(){
+        if (Constants.isNetworkAvailable(this@MainActivity)){
+            Toast.makeText(this@MainActivity, "You have connected to internet.", Toast.LENGTH_LONG).show()
+        }else{
+            Toast.makeText(this@MainActivity, "No internet connection.", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -112,12 +121,14 @@ class MainActivity : AppCompatActivity() {
                 // redirect user to app settings to allow permission for location
                     _, _->
                 try {
-                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    val uri = Uri.fromParts("package", packageName,null)
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", packageName, null)
                     intent.data = uri
                     startActivity(intent)
                 }catch (e: ActivityNotFoundException){
                     e.printStackTrace()
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
                 }
             }
         builder.create().show()
