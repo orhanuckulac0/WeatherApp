@@ -140,4 +140,10 @@ class MainActivity : AppCompatActivity() {
             binding = null
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        finish()
+        startActivity(intent)
+    }
 }
