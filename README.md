@@ -11,7 +11,7 @@ A Weather App which shows the current weather details on user's location by maki
 - Reload button to update weather details when needed
 ## Screenshots
 
-![mainpageSS](https://user-images.githubusercontent.com/101017069/202576871-3632a1cb-c8da-4d9f-b869-5fb7baedbd2b.png)
+![weather app main](https://user-images.githubusercontent.com/101017069/202577559-5e391f02-4a99-45b6-9348-61e828e2b587.PNG)
 
 ## Appendix
 
