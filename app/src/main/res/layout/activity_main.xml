@@ -12,6 +12,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
         android:orientation="horizontal">
 
         <androidx.cardview.widget.CardView
@@ -37,7 +38,7 @@
                     android:layout_height="@dimen/identification_image_size"
                     android:layout_marginEnd="@dimen/identification_image_marginEnd"
                     android:contentDescription="@string/image_contentDescription"
-                    app:srcCompat="@drawable/snowflake" />
+                    app:srcCompat="@drawable/sun" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -323,6 +324,7 @@
                         tools:text="Sunrise" />
                 </LinearLayout>
 
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -345,6 +347,7 @@
                         android:textSize="@dimen/value_text_size"
                         tools:text="Sunset" />
                 </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
