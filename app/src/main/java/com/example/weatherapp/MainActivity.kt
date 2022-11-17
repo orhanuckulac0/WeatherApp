@@ -3,6 +3,7 @@ package com.example.weatherapp
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -17,10 +18,13 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.models.WeatherResponse
 import com.example.weatherapp.network.WeatherService
 import com.google.android.gms.location.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -28,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient  // to get the lat and lng of user
+    private var mProgressDialog: Dialog? = null
+
 
     private val requestLocationPermission: ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
@@ -77,8 +83,6 @@ class MainActivity : AppCompatActivity() {
 
         val mLocationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setWaitForAccurateLocation(false)
-//            .setMinUpdateIntervalMillis(100)
-//            .setMaxUpdateDelayMillis(100)
             .setMaxUpdates(1)
             .build()
 
@@ -109,33 +113,42 @@ class MainActivity : AppCompatActivity() {
             val service: WeatherService = retrofit.create<WeatherService>(WeatherService::class.java)
             val listCall : Call<WeatherResponse> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT ,Constants.APP_ID)
 
-            listCall.enqueue(object: Callback<WeatherResponse>{
-                override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                    Log.e("Error", t.message.toString())
-                }
+            showProgressDialog()
+            lifecycleScope.launch(Dispatchers.Main) {
 
-                override fun onResponse(
-                    call: Call<WeatherResponse>,
-                    response: Response<WeatherResponse>
-                ) {
-                    if (response.isSuccessful){
-                        val weatherList: WeatherResponse? = response.body()
-                        Log.i("Response Result: ", "$weatherList")
-                    }else{
-                        when(response.code()){
-                            400 -> {
-                                Log.e("Error 400","Bad Connection")
-                            }
-                            404 -> {
-                                Log.e("Error 404","Not Found")
-                            }
-                            else -> {
-                                Log.e("Error","Generic Error")
+                listCall.enqueue(object: Callback<WeatherResponse>{
+                    override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                        Log.e("Error", t.message.toString())
+
+                        cancelProgressDialog()
+                    }
+
+                    override fun onResponse(
+                        call: Call<WeatherResponse>,
+                        response: Response<WeatherResponse>
+                    ) {
+
+                        cancelProgressDialog()
+
+                        if (response.isSuccessful){
+                            val weatherList: WeatherResponse? = response.body()
+                            Log.i("Response Result: ", "$weatherList")
+                        }else{
+                            when(response.code()){
+                                400 -> {
+                                    Log.e("Error 400","Bad Connection")
+                                }
+                                404 -> {
+                                    Log.e("Error 404","Not Found")
+                                }
+                                else -> {
+                                    Log.e("Error","Generic Error")
+                                }
                             }
                         }
                     }
-                }
-            })
+                })
+            }
         }else{
             Toast.makeText(this@MainActivity, "No internet connection.", Toast.LENGTH_LONG).show()
         }
@@ -167,7 +180,19 @@ class MainActivity : AppCompatActivity() {
         builder.create().show()
     }
 
-    override fun onDestroy() {
+    private fun showProgressDialog(){
+        mProgressDialog = Dialog(this@MainActivity)
+        mProgressDialog!!.setContentView(R.layout.dialog_custom_progress)
+        mProgressDialog!!.show()
+    }
+
+    private fun cancelProgressDialog(){
+        if (mProgressDialog != null){
+            mProgressDialog!!.dismiss()
+        }
+    }
+
+override fun onDestroy() {
         super.onDestroy()
         if (binding != null){
             binding = null
