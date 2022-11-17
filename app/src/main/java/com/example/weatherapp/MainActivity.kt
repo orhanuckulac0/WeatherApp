@@ -10,6 +10,7 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -27,6 +28,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
@@ -110,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                 .baseUrl(Constants.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-            val service: WeatherService = retrofit.create<WeatherService>(WeatherService::class.java)
+            val service: WeatherService = retrofit.create(WeatherService::class.java)
             val listCall : Call<WeatherResponse> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT ,Constants.APP_ID)
 
             showProgressDialog()
@@ -129,9 +132,10 @@ class MainActivity : AppCompatActivity() {
                     ) {
 
                         cancelProgressDialog()
-
                         if (response.isSuccessful){
-                            val weatherList: WeatherResponse? = response.body()
+                            val weatherList: WeatherResponse = response.body()!!
+                            setupUI(weatherList)
+
                             Log.i("Response Result: ", "$weatherList")
                         }else{
                             when(response.code()){
@@ -192,16 +196,51 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-override fun onDestroy() {
+    @SuppressLint("SetTextI18n")
+    private fun setupUI(weatherList: WeatherResponse){
+        binding?.tvCountry?.text = weatherList.sys.country
+        binding?.tvName?.text = weatherList.name
+
+        binding?.tvMin?.text = weatherList.main.temp_min.toString() + " min"
+        binding?.tvMax?.text = weatherList.main.temp_max.toString() + " max"
+
+        binding?.tvSpeed?.text = weatherList.wind.speed.toString()
+        binding?.tvHumidity?.text = weatherList.main.humidity.toString() + " per cent"
+        binding?.tvSunriseTime?.text = unixTime(weatherList.sys.sunrise)
+        binding?.tvSunsetTime?.text = unixTime(weatherList.sys.sunset)
+
+        for (i in weatherList.weather.indices){
+            binding?.tvMain?.text = weatherList.weather[i].main
+            binding?.tvMainDescription?.text = weatherList.weather[i].description
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                binding?.tvTemp?.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+            }else{
+                binding?.tvTemp?.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locale.toString())
+            }
+        }
+    }
+
+    private fun getUnit(localeValue: String): String{
+        var value = "°C"
+        if ("US" == localeValue || "LR" == localeValue || "MM" == localeValue){
+            value = "°F"
+        }
+        return value
+    }
+
+    private fun unixTime(timex: Long): String{
+        val date = Date(timex * 1000L)
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        sdf.timeZone = TimeZone.getDefault()
+        return sdf.format(date)
+    }
+
+    override fun onDestroy() {
         super.onDestroy()
         if (binding != null){
             binding = null
         }
     }
-
-//    override fun onResume() {
-//        super.onResume()
-//        finish()
-//        startActivity(intent)
-//    }
 }
