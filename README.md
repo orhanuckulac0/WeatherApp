@@ -6,8 +6,8 @@ A Weather App which shows the current weather details on user's location by maki
 ## Features
 
 - Weather type
-- Temperature, min-max temperature
-- Wind speed, humidity, sunset-sunrise times
+- Temperature and min-max temperature
+- Wind speed, humidity and sunset-sunrise times
 - Reload button to update weather details when needed
 ## Screenshots
 
