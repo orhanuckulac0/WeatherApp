@@ -1,4 +1,4 @@
-# Project Title
+# Weather App
 
 A Weather App which shows the current weather details on user's location by making API calls to openweathermap.
 
